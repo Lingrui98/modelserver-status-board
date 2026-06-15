@@ -29,10 +29,20 @@ struct DashboardView: View {
             Button {
                 Task { await viewModel.refresh() }
             } label: {
-                Image(systemName: viewModel.isLoading ? "arrow.triangle.2.circlepath" : "arrow.clockwise")
+                Group {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Image(systemName: "arrow.clockwise")
+                    }
+                }
+                .frame(width: 28, height: 28)
+                .contentShape(Rectangle())
             }
-            .buttonStyle(.borderless)
-            .help("刷新")
+            .buttonStyle(.plain)
+            .disabled(viewModel.isLoading)
+            .help(viewModel.isLoading ? "正在刷新" : "刷新")
         }
         .padding(16)
     }
@@ -62,7 +72,7 @@ struct DashboardView: View {
     private var footer: some View {
         HStack {
             if viewModel.isAuthenticated {
-                Text("更新：\(DateFormatting.localDateTime(viewModel.state.lastUpdated))")
+                Text(viewModel.isLoading ? "正在刷新..." : "更新：\(DateFormatting.localDateTime(viewModel.state.lastUpdated))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else if viewModel.isClearingCredentials {

@@ -12,6 +12,14 @@ The app appears in the macOS menu bar. Click the menu bar item, open the embedde
 
 macOS may ask whether `StatusBoardApp` can access the saved Keychain item when `记住登录` is enabled or an older version already saved a token. Choosing "Always Allow" lets the app auto-login with the stored refresh token on future launches. Use `退出登录` to clear the app token and embedded WebKit website data; after that, the app should not be able to reuse old local credentials.
 
+## Package
+
+```bash
+scripts/package_app.sh
+```
+
+The packaged app is written to `dist/ModelServer Status Board.app`. It is ad-hoc signed for local installation.
+
 ## Data Shown
 
 - Total requests, tokens, credits, average daily requests

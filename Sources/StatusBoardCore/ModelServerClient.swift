@@ -161,9 +161,20 @@ public actor ModelServerClient {
             return response
         } catch {
             accessToken = nil
-            try? tokenStore.deleteRefreshToken()
+            if Self.shouldClearRefreshToken(after: error) {
+                self.refreshToken = nil
+                self.shouldPersistRefreshToken = false
+                try? tokenStore.deleteRefreshToken()
+            }
             throw error
         }
+    }
+
+    private static func shouldClearRefreshToken(after error: Error) -> Bool {
+        guard case ModelServerClientError.httpStatus(let status, _) = error else {
+            return false
+        }
+        return status == 400 || status == 401 || status == 403
     }
 
     private func rawRequest<T: Decodable>(

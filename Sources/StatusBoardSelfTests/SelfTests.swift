@@ -32,6 +32,9 @@ enum StatusBoardSelfTests {
         await runner.run("refresh failure clears token") {
             try await testRefreshFailureClearsToken()
         }
+        await runner.run("network refresh failure preserves token") {
+            try await testNetworkRefreshFailurePreservesToken()
+        }
         await runner.run("session login does not save keychain token") {
             try await testSessionLoginDoesNotSaveKeychainToken()
         }
@@ -231,6 +234,27 @@ enum StatusBoardSelfTests {
         } catch {
             let savedRefreshToken = try store.loadRefreshToken()
             try expect(savedRefreshToken == nil, "refresh failure should clear token")
+        }
+    }
+
+    private static func testNetworkRefreshFailurePreservesToken() async throws {
+        let store = InMemoryTokenStore(token: "refresh-1")
+        let client = ModelServerClient(
+            baseURL: URL(string: "https://example.test")!,
+            session: stubbedSession(),
+            tokenStore: store
+        )
+
+        URLProtocolStub.handler = { _ in
+            throw URLError(.notConnectedToInternet)
+        }
+
+        do {
+            _ = try await client.fetchProject(id: "p1")
+            throw TestFailure("expected network failure")
+        } catch {
+            let savedRefreshToken = try store.loadRefreshToken()
+            try expect(savedRefreshToken == "refresh-1", "network failure should preserve refresh token")
         }
     }
 
